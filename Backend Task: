@@ -1,0 +1,88 @@
+Create the Registration table
+CREATE TABLE Registration (
+  ID NUMBER PRIMARY KEY,
+  Name VARCHAR2(100) NOT NULL,
+  Email VARCHAR2(100) UNIQUE NOT NULL,
+  Date_of_Birth DATE NOT NULL,
+  Phone_Number VARCHAR2(20),
+  Address VARCHAR2(200),
+  Created_At TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  Updated_At TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Create a sequence for the ID
+CREATE SEQUENCE Registration_ID_SEQ START WITH 1 INCREMENT BY 1;
+
+-- Create Operation
+CREATE OR REPLACE PROCEDURE Create_Registration(
+  p_Name IN Registration.Name%TYPE,
+  p_Email IN Registration.Email%TYPE,
+  p_Date_of_Birth IN Registration.Date_of_Birth%TYPE,
+  p_Phone_Number IN Registration.Phone_Number%TYPE,
+  p_Address IN Registration.Address%TYPE,
+  p_ID OUT Registration.ID%TYPE
+) AS
+BEGIN
+  -- Input validation
+  IF p_Name IS NULL OR p_Email IS NULL OR p_Date_of_Birth IS NULL THEN
+    RAISE_APPLICATION_ERROR(-20001, 'Name, Email, and Date of Birth are required fields');
+  END IF;
+
+  -- Email format validation (basic check)
+  IF NOT REGEXP_LIKE(p_Email, '^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,4}$') THEN
+    RAISE_APPLICATION_ERROR(-20002, 'Invalid email format');
+  END IF;
+
+  -- Insert the new registration
+  p_ID := Registration_ID_SEQ.NEXTVAL;
+  INSERT INTO Registration (ID, Name, Email, Date_of_Birth, Phone_Number, Address)
+  VALUES (p_ID, p_Name, p_Email, p_Date_of_Birth, p_Phone_Number, p_Address);
+  
+  COMMIT;
+EXCEPTION
+  WHEN DUP_VAL_ON_INDEX THEN
+    RAISE_APPLICATION_ERROR(-20003, 'Email address already exists');
+  WHEN OTHERS THEN
+    ROLLBACK;
+    RAISE;
+END;
+/
+
+-- Read Operation
+CREATE OR REPLACE PROCEDURE Read_Registration(
+  p_ID IN Registration.ID%TYPE,
+  p_Name OUT Registration.Name%TYPE,
+  p_Email OUT Registration.Email%TYPE,
+  p_Date_of_Birth OUT Registration.Date_of_Birth%TYPE,
+  p_Phone_Number OUT Registration.Phone_Number%TYPE,
+  p_Address OUT Registration.Address%TYPE
+) AS
+BEGIN
+  SELECT Name, Email, Date_of_Birth, Phone_Number, Address
+  INTO p_Name, p_Email, p_Date_of_Birth, p_Phone_Number, p_Address
+  FROM Registration
+  WHERE ID = p_ID;
+EXCEPTION
+  WHEN NO_DATA_FOUND THEN
+    RAISE_APPLICATION_ERROR(-20004, 'Registration not found');
+  WHEN OTHERS THEN
+    RAISE;
+END;
+/
+
+-- Update Operation
+CREATE OR REPLACE PROCEDURE Update_Registration(
+  p_ID IN Registration.ID%TYPE,
+  p_Name IN Registration.Name%TYPE,
+  p_Email IN Registration.Email%TYPE,
+  p_Date_of_Birth IN Registration.Date_of_Birth%TYPE,
+  p_Phone_Number IN Registration.Phone_Number%TYPE,
+  p_Address IN Registration.Address%TYPE
+) AS
+BEGIN
+Input validation
+  IF p_Name IS NULL OR p_Email IS NULL OR p_Date_of_Birth IS NULL THEN
+    RAISE_APPLICATION_ERROR(-20001, 'Name, Email, and Date of Birth are required fields');
+  END IF;
+
+ 
